@@ -85,12 +85,16 @@ def processDataForSavingAndForNet():
     # визуализация для себя
     plt.matshow(depth_array)
     plt.show()
+
     #---------
     # обработка RGB изображения
     # _________________________
     RGB_array = np.reshape(np.fromstring(pics[1].image_data_uint8, dtype=np.uint8) , (pics[1].height, pics[1].width, 4))
     plt.imshow(RGB_array)
     plt.show()
+    print(depth_array.shape)
+    print(RGB_array.shape)
+    return (RGB_array, depth_array)
 
 x_min = -10
 x_max = 36
@@ -102,16 +106,18 @@ moveToDir(0,0,-1)
 print("flied up")
 client.rotateToYaw(0)
 print("rotated")
-processDataForSavingAndForNet()
-a = input()
+# processDataForSavingAndForNet()
+# a = input()
 
-
-
-for i in range(10):
-    flyIteration()
-    print("fly iteration" +  str(i))
-    pos = client.getPosition()
-    if pos.x_val > x_max or pos.x_val < x_min or pos.y_val > y_max or pos.y_val < y_min:
+def getData():
+    f = False
+    to_return = ()
+    try:
+        flyIteration()
+        pos = client.getPosition()
+        to_return = processDataForSavingAndForNet()
+    # если он вышел за границу области или была огшибка
+    except:
         client.reset()
         client.enableApiControl(True)
         client.armDisarm(True)
@@ -119,6 +125,13 @@ for i in range(10):
         print("flied up")
         client.rotateToYaw(0)
         print("rotated")
+        f = True
+    return (to_return, f)
+
+# for i in range(10):
+#     flyIteration()
+#     print("fly iteration" +  str(i))
 
 
-client.reset()
+
+# client.reset()
