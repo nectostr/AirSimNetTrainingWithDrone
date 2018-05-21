@@ -17,11 +17,11 @@ np.random.seed(123)
 
 model = Sequential()
 keras.backend.set_image_data_format("channels_first")
-model.add(Convolution2D(32, 3, 3, activation='relu', input_shape=(1,28,28)))
+model.add(Convolution2D(32, (3, 3), activation='relu', input_shape=(1,28,28)))
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
-model.add(Convolution2D(32, 3, 3, activation='relu', input_shape=(1,28,28)))
+model.add(Convolution2D(32, (3, 3), activation='relu', input_shape=(1,28,28)))
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 
@@ -33,18 +33,20 @@ model.add(Dense(10, activation='softmax'))
 
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
-              metrics=['accuracy',''])
+              metrics=['accuracy'])
 
 # data import
 import PythonClient.airsimWithNet as airsimdata
 batch_size = 30
 generator = (airsimdata.getData() for i in range(batch_size))
 # cicle !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+((X_train, Y_train), reset) = airsimdata.getData()
+print("Shape of x: ",X_train.shape, ", shape of Y ", Y_train.shape)
 
 # получим данные
 # ((X_train, Y_train), reset) = airsimdata.getData()
 # немного о данных
-# X -
+# Shape of x:  (480, 640, 4) , shape of Y  (480, 640)
 epochs = 1
 model.fit_generator(generator,batch_size,epochs, verbose=1)
 

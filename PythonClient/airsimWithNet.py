@@ -3,7 +3,7 @@ import tempfile
 import pprint
 
 import math
-from AirSimClient import *
+from PythonClient.AirSimClient import *
 from random import randint
 import time
 import numpy as np
@@ -63,7 +63,7 @@ client.armDisarm(True)
 
 def flyIteration():
     yaw = randint(-90,90)
-    print(yaw)
+    # print(yaw)
     client.rotateToYaw(yaw)
     moveAhead(2)
 
@@ -92,8 +92,6 @@ def processDataForSavingAndForNet():
     RGB_array = np.reshape(np.fromstring(pics[1].image_data_uint8, dtype=np.uint8) , (pics[1].height, pics[1].width, 4))
     plt.imshow(RGB_array)
     plt.show()
-    print(depth_array.shape)
-    print(RGB_array.shape)
     return (RGB_array, depth_array)
 
 x_min = -10
