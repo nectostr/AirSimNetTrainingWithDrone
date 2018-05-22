@@ -107,6 +107,9 @@ print("rotated")
 # processDataForSavingAndForNet()
 # a = input()
 
+class ExeptInGenData(Exception):
+    pass
+
 def getData():
     f = False
     to_return = ()
@@ -123,8 +126,8 @@ def getData():
         print("flied up")
         client.rotateToYaw(0)
         print("rotated")
-        f = True
-    return (to_return, f)
+        raise ExeptInGenData
+    return to_return
 
 # for i in range(10):
 #     flyIteration()
