@@ -4,7 +4,7 @@ import numpy as np
 import keras.backend
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten, InputLayer
-from keras.layers import Convolution2D, MaxPooling2D, Conv3D, MaxPool3D
+from keras.layers import Convolution2D, MaxPooling2D, Conv3D, MaxPool3D, Reshape
 from keras.utils import np_utils
 from keras.datasets import mnist
 np.random.seed(123)
@@ -15,11 +15,14 @@ np.random.seed(123)
 # когда буду накидывать рекурентные последовательности должны быть stateful
 # reset recurent будет звучать как-то как model.reset_states
 import PythonClient.airsimWithNet as airsimdata
-batch_size = 30
+batch_size = 1
 temp_data_x, temp_data_y = airsimdata.processDataForSavingAndForNet()
+shape_temp_x = temp_data_x.shape
+shape_temp_y = temp_data_y.shape
+print(shape_temp_x, shape_temp_y)
 model = Sequential()
-keras.backend.set_image_data_format("channels_first")
-model.add(InputLayer(temp_data_x.shape, batch_size))
+keras.backend.set_image_data_format("channels_last")
+model.add(InputLayer(temp_data_x.shape))
 """model.add(Convolution2D(32, (3, 3), activation='relu', input_shape=(1,28,28)))
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
@@ -34,7 +37,8 @@ model.add(Dropout(0.5))
 model.add(Dense(10, activation='softmax'))"""
 model.add(Flatten())
 model.add(Dense(temp_data_x.shape[0]*temp_data_x.shape[1]*temp_data_x.shape[2], activation="sigmoid"))
-
+model.add(Dense(temp_data_x.shape[0]*temp_data_x.shape[1]))
+model.add(Reshape(shape_temp_y))
 
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
@@ -44,7 +48,7 @@ model.compile(loss='categorical_crossentropy',
 
 
 
-generator = (airsimdata.getData() for i in range(batch_size))
+generator = (airsimdata.getData() for i in range(10))
 # cicle !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 # ((X_train, Y_train), reset) = airsimdata.getData()
 # print("Shape of x: ",X_train.shape, ", shape of Y ", Y_train.shape)
@@ -60,7 +64,7 @@ ep = 0
 
 while (ep < 10):
     try:
-        model.fit_generator(generator,batch_size,epochs, verbose=1, workers=0) #
+        model.fit_generator(generator,epochs=epochs, verbose=1, workers=0) #
     except airsimdata.ExeptInGenData as ex:
         model.reset_states()
     finally: ep += 1
