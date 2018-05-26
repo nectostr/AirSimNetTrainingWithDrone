@@ -22,7 +22,7 @@ print(shape_temp_x, shape_temp_y)
 model = Sequential()
 keras.backend.set_image_data_format("channels_last")
 # model.add(InputLayer(temp_data_x.shape[1:]))
-model.add(ConvLSTM2D(1024, (5,5), activation='relu', input_shape=(10, 480, 640, 4)))
+model.add(Convolution2D(8, (3,3), activation='relu', input_shape=(480, 640, 1)))
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Flatten())
 model.add(Dense(480*640))
@@ -34,9 +34,11 @@ model.compile(loss='categorical_crossentropy',
 print(model.summary())
 # data import
 
+def generator():
+  while True:
+    yield airsimdata.getData()
 
 
-generator = (airsimdata.getData() for i in range(10))
 # cicle !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 # ((X_train, Y_train), reset) = airsimdata.getData()
 # print("Shape of x: ",X_train.shape, ", shape of Y ", Y_train.shape)
@@ -52,10 +54,13 @@ ep = 0
 
 while (ep < 10):
     try:
-        model.fit_generator(generator,epochs=epochs, steps_per_epoch=1, verbose=1, workers=0) #
+        X_test, Y_test = generator
+        # model.fit_generator(generator,epochs=epochs, steps_per_epoch=1, verbose=1, workers=0) #
+        model.fit(X_test, Y_test, 1, 1)
     except airsimdata.ExeptInGenData as ex:
         model.reset_states()
     finally: ep += 1
+print("<3")
 # подкоректируем форму данных
 # X_train = X_train.reshape(X_train.shape[0], 1, 28, 28)
 

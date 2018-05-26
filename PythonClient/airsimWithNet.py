@@ -67,6 +67,8 @@ def flyIteration():
     client.rotateToYaw(yaw)
     moveAhead(2)
 
+def rgb2gray(rgb):
+    return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
 
 def processDataForSavingAndForNet():
     pics = takePictures()
@@ -83,20 +85,22 @@ def processDataForSavingAndForNet():
     # нормализуем до 0-1
     depth_array = depth_array / max(depth_array.flat)
     # визуализация для себя
-    plt.matshow(depth_array)
-    plt.show()
-
+    # plt.matshow(depth_array)
+    # plt.show()
     #---------
     # обработка RGB изображения
     # _________________________
     RGB_array = np.reshape(np.fromstring(pics[1].image_data_uint8, dtype=np.uint8) , (pics[1].height, pics[1].width, 4))
-    plt.imshow(RGB_array)
-    plt.show()
+    # plt.imshow(RGB_array)
+    # plt.show()
+    GRAY_array = rgb2gray(RGB_array)
     RGB_array = RGB_array.astype(np.float32)
     RGB_array = np.expand_dims(RGB_array, 0)
-    depth_array = np.expand_dims(depth_array, 0)
+    # GRAY_array = np.expand_dims(GRAY_array, 0)
+    GRAY_array = np.expand_dims(GRAY_array, -1)
+    # depth_array = np.expand_dims(depth_array, 0)
 
-    return (RGB_array, depth_array)
+    return (GRAY_array, depth_array)
 
 x_min = -10
 x_max = 36
@@ -108,7 +112,7 @@ moveToDir(0,0,-1)
 print("flied up")
 client.rotateToYaw(0)
 print("rotated")
-# processDataForSavingAndForNet()
+processDataForSavingAndForNet()
 # a = input()
 
 class ExeptInGenData(Exception):
