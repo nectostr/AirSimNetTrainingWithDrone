@@ -90,19 +90,13 @@ def processDataForSavingAndForNet():
     #---------
     # обработка RGB изображения
     # _________________________
-    RGB_array = np.reshape(np.fromstring(pics[1].image_data_uint8, dtype=np.uint8) , (pics[1].height, pics[1].width, 4))
-    # plt.imshow(RGB_array)
+    outX_array = np.reshape(np.fromstring(pics[1].image_data_uint8, dtype=np.uint8) , (pics[1].height, pics[1].width, 4))
+    # plt.imshow(outX_array)
     # plt.show()
-    GRAY_array = rgb2gray(RGB_array)
-    # RGB_array = RGB_array.astype(np.float16)
-    RGB_array = np.expand_dims(RGB_array, 0)
-    GRAY_array = np.expand_dims(GRAY_array, 0)
-    GRAY_array = np.expand_dims(GRAY_array, -1)
-    # GRAY_array = GRAY_array.astype(np.float16)
-    # depth_array = depth_array.astype(np.float16)
-    # depth_array = depth_array.reshape(480*640)
+    outX_array = rgb2gray(outX_array)
+    outX_array = np.expand_dims(np.expand_dims(np.expand_dims(outX_array, 0),0),-1)
     depth_array = np.expand_dims(depth_array, 0)
-    return (GRAY_array, depth_array)
+    return (outX_array, depth_array)
 
 x_min = -10
 x_max = 36
@@ -116,7 +110,9 @@ client.rotateToYaw(0)
 print("rotated")
 processDataForSavingAndForNet()
 # a = input()
-
+#print("start")
+#moveAhead(15)
+#print("end")
 class ExeptInGenData(Exception):
     pass
 
@@ -124,7 +120,7 @@ def getData():
     f = False
     to_return = ()
     try:
-        flyIteration()
+        # flyIteration()
         pos = client.getPosition()
         to_return = processDataForSavingAndForNet()
     # если он вышел за границу области или была огшибка

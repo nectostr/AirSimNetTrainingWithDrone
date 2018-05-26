@@ -14,7 +14,8 @@ config = tf.ConfigProto(
     )
 sess = tf.Session(config=config)
 K.set_session(sess)
-
+ROWS = 150
+COLS = 200
 # generator -> (X_text, Y_test)
 
 # запилим модель с блекджеком и ...
@@ -27,26 +28,21 @@ shape_temp_x = temp_data_x.shape
 shape_temp_y = temp_data_y.shape
 print(shape_temp_x, shape_temp_y)
 
-plt.imshow(np.reshape(temp_data_x, (128, 128)), cmap="gray")
-plt.show()
-plt.imshow(np.reshape(temp_data_y, (128, 128)), cmap="gray")
-plt.show()
-
 model = Sequential()
 K.set_image_data_format("channels_last")
 
-model.add(ConvLSTM2D(16, (3, 3), activation='relu', batch_input_shape=(1, 1, 128, 128, 1), return_sequences=True, stateful=True))
+model.add(ConvLSTM2D(8, (3, 3), activation='relu', batch_input_shape=(1, 1, ROWS, COLS, 1), return_sequences=True, stateful=True))
 
-model.add(ConvLSTM2D(16, (3, 3), activation='relu', return_sequences=True, stateful=True))
+model.add(ConvLSTM2D(8, (3, 3), activation='relu', return_sequences=True, stateful=True))
 
-model.add(ConvLSTM2D(16, (3, 3), activation='relu', stateful=True))
-model.add(AveragePooling2D(pool_size=(2, 2)))
-model.add(AveragePooling2D(pool_size=(2, 2)))
+model.add(ConvLSTM2D(8, (3, 3), activation='relu', stateful=True))
+model.add(AveragePooling2D(pool_size=(3, 3)))
+model.add(AveragePooling2D(pool_size=(5, 5)))
 
 
 model.add(Flatten())
-model.add(Dense(128 * 128, activation='sigmoid'))
-model.add(Reshape((128, 128)))
+model.add(Dense(ROWS * COLS, activation='sigmoid'))
+model.add(Reshape((ROWS, COLS)))
 
 model.compile(loss='mean_squared_error',
               optimizer='adam',
@@ -79,18 +75,6 @@ while ep < 3:
   except airsimdata.ExeptInGenData as ex:
     model.reset_states()
   finally: ep += 1
-# подкоректируем форму данных
-# X_train = X_train.reshape(X_train.shape[0], 1, 28, 28)
-
-# тренировка 1 итерацию?
-# model.fit(X_train, Y_train, batch_size=1, nb_epoch=1, verbose=1)
-
-
-# model.fir_generator(...generator, sdsd)
-
-# end of cicle !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-# проверка результата на тестовых данных
-# score = model.evaluate(X_test, Y_test, verbose=1)
-# print(score)
 model.save('model.h5')
+
+print("<3")
