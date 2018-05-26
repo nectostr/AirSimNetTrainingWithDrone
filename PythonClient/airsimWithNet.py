@@ -94,12 +94,14 @@ def processDataForSavingAndForNet():
     # plt.imshow(RGB_array)
     # plt.show()
     GRAY_array = rgb2gray(RGB_array)
-    RGB_array = RGB_array.astype(np.float32)
+    # RGB_array = RGB_array.astype(np.float16)
     RGB_array = np.expand_dims(RGB_array, 0)
-    # GRAY_array = np.expand_dims(GRAY_array, 0)
+    GRAY_array = np.expand_dims(GRAY_array, 0)
     GRAY_array = np.expand_dims(GRAY_array, -1)
-    # depth_array = np.expand_dims(depth_array, 0)
-
+    # GRAY_array = GRAY_array.astype(np.float16)
+    # depth_array = depth_array.astype(np.float16)
+    # depth_array = depth_array.reshape(480*640)
+    depth_array = np.expand_dims(depth_array, 0)
     return (GRAY_array, depth_array)
 
 x_min = -10
