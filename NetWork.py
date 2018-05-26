@@ -3,8 +3,7 @@
 import numpy as np
 import keras.backend
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten, InputLayer
-from keras.layers import Convolution2D, MaxPooling2D, Conv3D, MaxPool3D, Reshape
+from keras.layers import *
 from keras.utils import np_utils
 from keras.datasets import mnist
 np.random.seed(123)
@@ -22,28 +21,17 @@ shape_temp_y = temp_data_y.shape
 print(shape_temp_x, shape_temp_y)
 model = Sequential()
 keras.backend.set_image_data_format("channels_last")
-model.add(InputLayer(temp_data_x.shape))
-"""model.add(Convolution2D(32, (3, 3), activation='relu', input_shape=(1,28,28)))
+# model.add(InputLayer(temp_data_x.shape[1:]))
+model.add(ConvLSTM2D(1024, (5,5), activation='relu', input_shape=(10, 480, 640, 4)))
 model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Dropout(0.25))
-
-model.add(Convolution2D(32, (3, 3), activation='relu', input_shape=(1,28,28)))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Dropout(0.25))
-
 model.add(Flatten())
-model.add(Dense(128, activation='sigmoid'))
-model.add(Dropout(0.5))
-model.add(Dense(10, activation='softmax'))"""
-model.add(Flatten())
-model.add(Dense(temp_data_x.shape[0]*temp_data_x.shape[1]*temp_data_x.shape[2], activation="sigmoid"))
-model.add(Dense(temp_data_x.shape[0]*temp_data_x.shape[1]))
-model.add(Reshape(shape_temp_y))
+model.add(Dense(480*640))
+model.add(Reshape((480,640)))
 
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
-
+print(model.summary())
 # data import
 
 
@@ -64,7 +52,7 @@ ep = 0
 
 while (ep < 10):
     try:
-        model.fit_generator(generator,epochs=epochs, verbose=1, workers=0) #
+        model.fit_generator(generator,epochs=epochs, steps_per_epoch=1, verbose=1, workers=0) #
     except airsimdata.ExeptInGenData as ex:
         model.reset_states()
     finally: ep += 1

@@ -92,6 +92,10 @@ def processDataForSavingAndForNet():
     RGB_array = np.reshape(np.fromstring(pics[1].image_data_uint8, dtype=np.uint8) , (pics[1].height, pics[1].width, 4))
     plt.imshow(RGB_array)
     plt.show()
+    RGB_array = RGB_array.astype(np.float32)
+    RGB_array = np.expand_dims(RGB_array, 0)
+    depth_array = np.expand_dims(depth_array, 0)
+
     return (RGB_array, depth_array)
 
 x_min = -10
