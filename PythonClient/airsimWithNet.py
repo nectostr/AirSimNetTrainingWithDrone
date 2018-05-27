@@ -105,7 +105,7 @@ def processDataForSavingAndForNet():
     depth_array = np.reshape(np.asarray(pics[0].image_data_float, dtype=np.float32), (pics[0].height, pics[0].width))
     # ограничим дальность карты глубины до x
     def dep_lim(x):
-        return x if x < 50 else 50
+        return x if x < 150 else 150
     dep_lim = np.vectorize(dep_lim)
     # Срезаем до 50м карту глубины
     depth_array = dep_lim(depth_array)
@@ -122,7 +122,7 @@ def processDataForSavingAndForNet():
     # plt.show()
     outX_array = rgb2gray(outX_array)
     outX_array = outX_array / max(outX_array.flat)
-    outX_array = np.expand_dims(np.expand_dims(np.expand_dims(outX_array, 0),0),-1)
+    outX_array = np.expand_dims(np.expand_dims(outX_array, 0),-1)
     depth_array = np.expand_dims(np.expand_dims(depth_array, 0), -1)
     return (outX_array, depth_array)
 
@@ -167,7 +167,7 @@ def getData():
         raise ExeptInGenData
     return to_return
 
-connet_ip = "192.168.1.100"
+connet_ip = ""
 client = MultirotorClient(connet_ip)
 client.confirmConnection()
 # go up

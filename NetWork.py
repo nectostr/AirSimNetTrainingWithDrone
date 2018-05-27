@@ -17,8 +17,8 @@ config = tf.ConfigProto(
     )
 sess = tf.Session(config=config)
 K.set_session(sess)
-ROWS = 150
-COLS = 200
+ROWS = 64
+COLS = 64
 # generator -> (X_text, Y_test)
 
 # запилим модель с блекджеком и ...
@@ -34,51 +34,46 @@ print(shape_temp_x, shape_temp_y)
 
 model = Sequential()
 K.set_image_data_format("channels_last")
-v_max_norm = 2
-v_regularizer = 0.05
-model.add(ConvLSTM2D(80, (3, 3), padding='same', activation='relu',
-                     batch_input_shape=(1, 1, ROWS, COLS, 1), return_sequences=True,
-                     stateful=True, kernel_regularizer=l2(v_regularizer),
+v_max_norm = 4
+v_regularizer = 0.1
+model.add(Conv2D(32, (3, 3), padding='same', activation='relu',
+                     batch_input_shape=(1, ROWS, COLS, 1),  kernel_regularizer=l2(v_regularizer),
                      kernel_constraint=max_norm(v_max_norm)))
-#model.add(ConvLSTM2D(8, (3, 3), activation='relu', return_sequences=True, stateful=True,
-#                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(ConvLSTM2D(80, (3, 3), padding='same', activation='relu', stateful=True,
-                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(MaxPooling2D(pool_size=(3, 3)))
-
-model.add(Conv2D(72, (3, 3), activation='relu',padding='same',
-                     kernel_regularizer=l2(v_regularizer),
-                     kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2D(72, (3, 3), activation='relu',padding='same',
-                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2D(72, (3, 3), activation='relu',padding='same',
+model.add(Conv2D(32, (3, 3), padding='same', activation='relu',
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
-model.add(Dense(2000, activation='sigmoid', kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Dense(1000, activation='sigmoid', kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Dense(2000, activation='sigmoid', kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+
+
+model.add(Reshape((1, 32, 32, 32)))
+model.add(ConvLSTM2D(256, (3, 3), activation='relu',padding='same',stateful= True,  return_sequences=True,
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(ConvLSTM2D(256, (3, 3), activation='relu',padding='same',stateful= True,
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+
+
+# model.add(ConvLSTM2D(32, (3, 3), activation='relu',padding='same', stateful= True, return_sequences=True,
+#                      kernel_regularizer=l2(v_regularizer),
+#                      kernel_constraint=max_norm(v_max_norm)))
+# model.add(ConvLSTM2D(16, (3, 3), activation='relu',padding='same',stateful= True, return_sequences=True,
+#                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+# model.add(ConvLSTM2D(8, (3, 3), activation='relu',padding='same',stateful= True,
+#                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+# model.add(MaxPooling2D(pool_size=(2, 2)))
+
+
 
 model.add(UpSampling2D((2,2)))
-model.add(Conv2DTranspose(72, (3,3), activation='relu',padding='same',
+model.add(Conv2DTranspose(32, (3,3), activation='relu',padding='same',
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2DTranspose(72, (3,3), activation='relu',padding='same',
-                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2DTranspose(72, (3,3), activation='relu',padding='same',
+model.add(Conv2DTranspose(32, (3,3), activation='relu',padding='same',
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
+model.add(Conv2DTranspose(1, (1,1), activation='relu',padding='same',
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
-model.add(UpSampling2D((3,3)))
-model.add(ZeroPadding2D((0,1)))
-model.add(Conv2DTranspose(80, (3,3), activation='relu',padding='same',
-                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2DTranspose(1, (3,3), activation='softmax',padding='same',
-                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 #model.add(Conv2DTranspose(8, (3,3)))
 
-#model.add(Flatten())
-#model.add(Dense(ROWS * COLS, activation='sigmoid', kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-#model.add(Reshape((ROWS, COLS)))
 
 opt = keras.optimizers.Adam(lr= 0.001)
 model.compile(loss='mean_squared_error',
@@ -158,15 +153,21 @@ tensorboard_cb = keras.callbacks.TensorBoard(
 
 while ep < 20:
   try:
-    model.fit_generator(generator(), epochs=epochs, steps_per_epoch=50, verbose=1, workers=1)
-    x_data, y_data = next(generator())
-    res = model.predict(x_data)
-    show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
-                 ], 1, ["from", "want", "predict"])
+    model.fit_generator(generator(), epochs=epochs, steps_per_epoch=100, verbose=1, workers=1, initial_epoch=ep)
+    #x_data, y_data = next(generator())
+    #res = model.predict(x_data)
+    #show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
+    #             ], 1, ["from", "want", "predict"])
     # airsimdata.resetImageConn()
+    model.save('model.h5')
   except airsimdata.ExeptInGenData as ex:
     model.reset_states()
   finally: ep += 1
+x_data, y_data = next(generator())
+res = model.predict(x_data)
+show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
+             ], 1, ["from", "want", "predict"])
+airsimdata.resetImageConn()
 model.save('model.h5')
 
 print("<3")

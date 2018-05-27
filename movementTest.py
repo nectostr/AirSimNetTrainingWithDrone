@@ -67,6 +67,15 @@ def takePictures():
     ])
     return responses
 
+globalSaveInd = 0
+data_save_dir = "L:\\Documents\\PyCharmProjects\\HelloDrone\\data"
+def saveData(arrays):
+    global globalSaveInd
+    np.savetxt(data_save_dir + "\\pic_from" + str(globalPictureIndex) + ".txt", arrays[0])
+    np.savetxt(data_save_dir + "\\pic_to" + str(globalPictureIndex) + ".txt", arrays[0])
+    globalSaveInd += 1
+
+
 def movementConnection():
     client.reset()
     client.enableApiControl(True)
@@ -76,7 +85,13 @@ def movementConnection():
     client.rotateToYaw(0)
     print("rotated")
 
-
+def moveRight(duration):
+    speed = 1
+    pitch, roll, yaw  = client.getPitchRollYaw()
+    vx = math.cos(yaw + 90) * speed
+    vy = math.sin(yaw + 90) * speed
+    z = client.getPosition().z_val
+    client.moveByVelocityZ(vx, vy, z, duration, DrivetrainType.ForwardOnly)
 
 def flyIteration(n):
     yaw = randint(-90,90)
@@ -137,12 +152,13 @@ def getData():
         raise ExeptInGenData
     return to_return
 
-connet_ip = "192.168.1.100"
+connet_ip = ""
 client = MultirotorClient(connet_ip)
 client.confirmConnection()
 
 movementConnection()
-moveAhead(5)
-yaw = randint(-90, 90)
-client.rotateToYaw(yaw)
-newmoveAhead(5)
+moveRight(20)
+for i in range(100):
+    print("pic"+str(i))
+    arra = processDataForSavingAndForNet()
+    saveData(arra)
