@@ -91,7 +91,7 @@ def generator():
 # ((X_train, Y_train), reset) = airsimdata.getData()
 # немного о данных
 # Shape of x:  (480, 640, 4) , shape of Y  (480, 640)
-epochs = 1
+epochs = 5
 ep = 0
 
 
@@ -122,9 +122,9 @@ tensorboard_cb = keras.callbacks.TensorBoard(
     write_images=True
 )
 
-while ep < 30:
+while ep < 2:
   try:
-    model.fit_generator(generator(), epochs=epochs, steps_per_epoch=1000, verbose=1, workers=1)
+    model.fit_generator(generator(), epochs=epochs, steps_per_epoch=50, verbose=1, workers=1)
     x_data, y_data = next(generator())
     res = model.predict(x_data)
     show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
