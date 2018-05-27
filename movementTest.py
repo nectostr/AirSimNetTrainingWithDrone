@@ -28,7 +28,7 @@ def moveAhead(duration):
         client.moveByVelocityZ(-vx, -vy, z, 2, DrivetrainType.ForwardOnly)
         time.sleep(5)
 
-def moveRight(duration):
+def newmoveAhead(duration):
     speed = 1
     pitch, roll, yaw  = client.getPitchRollYaw()
     vx = math.cos(yaw + 90) * speed
@@ -77,10 +77,11 @@ def movementConnection():
     print("rotated")
 
 
+
 def flyIteration(n):
     yaw = randint(-90,90)
     client.rotateToYaw(yaw)
-    moveRight(n)
+    moveAhead(n)
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
@@ -109,29 +110,10 @@ def processDataForSavingAndForNet():
     # plt.imshow(outX_array)
     # plt.show()
     outX_array = rgb2gray(outX_array)
-    outX_array = outX_array / max(outX_array.flat)
     outX_array = np.expand_dims(np.expand_dims(np.expand_dims(outX_array, 0),0),-1)
     depth_array = np.expand_dims(depth_array, 0)
     return (outX_array, depth_array)
 
-
-def getBatchOfPice(batch_size):
-    collision = client.getCollisionInfo()
-    if (collision.has_collided == True):
-        print("Attention, collision")
-        speed = 1
-        pitch, roll, yaw = client.getPitchRollYaw()
-        vx = math.cos(yaw) * speed
-        vy = math.sin(yaw) * speed
-        z = client.getPosition().z_val
-        client.moveByVelocityZ(-vx, -vy, z, 2, DrivetrainType.ForwardOnly)
-        time.sleep(5)
-    moveRight(batch_size / 2)
-    res = []
-    for i in range(batch_size):
-        res.append(processDataForSavingAndForNet())
-        time.sleep(0.5)
-    return res
 
 class ExeptInGenData(Exception):
     pass
@@ -158,9 +140,9 @@ def getData():
 connet_ip = "192.168.1.100"
 client = MultirotorClient(connet_ip)
 client.confirmConnection()
-# go up
 
-# a = input()
-#print("start")
-#moveAhead(15)
-#print("end")
+movementConnection()
+moveAhead(5)
+yaw = randint(-90, 90)
+client.rotateToYaw(yaw)
+newmoveAhead(5)

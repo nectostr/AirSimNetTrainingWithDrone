@@ -3,6 +3,7 @@ import numpy as np
 import keras.backend as K
 import tensorflow as tf
 import keras
+from keras.regularizers import *
 from keras.models import Sequential
 from keras.layers import *
 from keras.utils import np_utils
@@ -33,20 +34,28 @@ print(shape_temp_x, shape_temp_y)
 model = Sequential()
 K.set_image_data_format("channels_last")
 
-model.add(ConvLSTM2D(16, (3, 3), activation='relu', batch_input_shape=(1, 1, ROWS, COLS, 1), return_sequences=True, stateful=True))
+model.add(ConvLSTM2D(16, (3, 3), activation='relu',
+                     batch_input_shape=(1, 1, ROWS, COLS, 1), return_sequences=True,
+                     stateful=True, kernel_regularizer=l2(0.005)))
+model.add(Dropout(0.2))
 
-model.add(ConvLSTM2D(8, (3, 3), activation='relu', return_sequences=True, stateful=True))
+model.add(ConvLSTM2D(8, (3, 3), activation='relu', return_sequences=True, stateful=True,
+                     kernel_regularizer=l2(0.005)))
+model.add(Dropout(0.2))
 
-model.add(ConvLSTM2D(8, (3, 3), activation='relu', stateful=True))
+model.add(ConvLSTM2D(8, (3, 3), activation='relu', stateful=True,
+                     kernel_regularizer=l2(0.005)))
+model.add(Dropout(0.2))
+
 model.add(AveragePooling2D(pool_size=(3, 3)))
 model.add(AveragePooling2D(pool_size=(3, 3)))
 
 
 model.add(Flatten())
-model.add(Dense(ROWS * COLS, activation='sigmoid'))
+model.add(Dense(ROWS * COLS, activation='sigmoid', kernel_regularizer=l2(0.005)))
 model.add(Reshape((ROWS, COLS)))
 
-opt = keras.optimizers.Adam(lr= 0.0005)
+opt = keras.optimizers.Adam(lr= 0.001)
 model.compile(loss='mean_squared_error',
               optimizer=opt,
               metrics=['accuracy'])
@@ -91,7 +100,7 @@ def generator():
 # ((X_train, Y_train), reset) = airsimdata.getData()
 # немного о данных
 # Shape of x:  (480, 640, 4) , shape of Y  (480, 640)
-epochs = 5
+epochs = 1
 ep = 0
 
 
@@ -122,7 +131,7 @@ tensorboard_cb = keras.callbacks.TensorBoard(
     write_images=True
 )
 
-while ep < 2:
+while ep < 20:
   try:
     model.fit_generator(generator(), epochs=epochs, steps_per_epoch=50, verbose=1, workers=1)
     x_data, y_data = next(generator())
