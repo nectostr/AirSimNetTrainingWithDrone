@@ -71,8 +71,11 @@ globalSaveInd = 0
 data_save_dir = "L:\\Documents\\PyCharmProjects\\HelloDrone\\data"
 def saveData(arrays):
     global globalSaveInd
-    np.savetxt(data_save_dir + "\\pic_from" + str(globalPictureIndex) + ".txt", arrays[0])
-    np.savetxt(data_save_dir + "\\pic_to" + str(globalPictureIndex) + ".txt", arrays[0])
+    outx = arrays[0].reshape((64,64))
+    outy = arrays[1].reshape((64,64))
+    a = data_save_dir + "\\pic_from" + str(globalSaveInd) + ".txt"
+    np.savetxt(a, outx)
+    np.savetxt(data_save_dir + "\\pic_to" + str(globalSaveInd) + ".txt", outy)
     globalSaveInd += 1
 
 
@@ -157,8 +160,19 @@ client = MultirotorClient(connet_ip)
 client.confirmConnection()
 
 movementConnection()
-moveRight(20)
-for i in range(100):
+# for saving data
+moveRight(50)
+time.sleep(5)
+for i in range(10):
     print("pic"+str(i))
     arra = processDataForSavingAndForNet()
     saveData(arra)
+    time.sleep(2)
+
+# reading data
+for i in range(0,10):
+    x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from"+str(i)+".txt")
+    plt.matshow(x)
+plt.show()
+
+
