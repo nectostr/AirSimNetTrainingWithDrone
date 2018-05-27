@@ -85,6 +85,14 @@ def flyIteration(n):
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
 
+
+def resetImageConn():
+    client.reset()
+    moveToDir(0, 0, -1)
+    print("flied up")
+    client.rotateToYaw(0)
+    print("rotated")
+
 def processDataForSavingAndForNet():
     pics = takePictures()
     # print(pics[0])
