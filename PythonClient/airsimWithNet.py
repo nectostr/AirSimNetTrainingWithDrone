@@ -20,7 +20,7 @@ def moveAhead(duration):
     vy = math.sin(yaw) * speed
     z = client.getPosition().z_val
     client.moveByVelocityZ(vx, vy, z, duration, DrivetrainType.ForwardOnly)
-    time.sleep(3)
+    time.sleep(duration)
     collision = client.getCollisionInfo()
     # print(collision)
     if (collision.has_collided == True):
@@ -29,8 +29,8 @@ def moveAhead(duration):
         time.sleep(5)
 
 
+tmp_dir = 'L:\\Pictures\\Uplay'
 globalPictureIndex = 0
-tmp_dir = "L:\\Documents\\PyCharmProjects\\HelloDrone\\testData"
 def savePictures(responses):
     global globalPictureIndex
     for idx, response in enumerate(responses):
@@ -45,7 +45,6 @@ def savePictures(responses):
             AirSimClientBase.write_png(os.path.normpath(filename + '.png'), img_rgba)  # write to png
 
 
-
 def takePictures():
     responses = client.simGetImages([
         ImageRequest(0, AirSimImageType.DepthPerspective, True, False),  # depth visualiztion image
@@ -53,19 +52,20 @@ def takePictures():
     ])
     return responses
 
+def movementConnection():
+    client.reset()
+    client.enableApiControl(True)
+    client.armDisarm(True)
+    moveToDir(0, 0, -1)
+    print("flied up")
+    client.rotateToYaw(0)
+    print("rotated")
 
-# connect to the AirSim simulator
-client = MultirotorClient()
-client.confirmConnection()
-client.reset()
-client.enableApiControl(True)
-client.armDisarm(True)
 
-def flyIteration():
+def flyIteration(n):
     yaw = randint(-90,90)
-    # print(yaw)
     client.rotateToYaw(yaw)
-    moveAhead(2)
+    moveAhead(n)
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
@@ -98,21 +98,7 @@ def processDataForSavingAndForNet():
     depth_array = np.expand_dims(depth_array, 0)
     return (outX_array, depth_array)
 
-x_min = -10
-x_max = 36
-y_min = -17
-y_max = 14
 
-# go up
-moveToDir(0,0,-1)
-print("flied up")
-client.rotateToYaw(0)
-print("rotated")
-processDataForSavingAndForNet()
-# a = input()
-#print("start")
-#moveAhead(15)
-#print("end")
 class ExeptInGenData(Exception):
     pass
 
@@ -135,10 +121,12 @@ def getData():
         raise ExeptInGenData
     return to_return
 
-# for i in range(10):
-#     flyIteration()
-#     print("fly iteration" +  str(i))
+connet_ip = "192.168.1.100"
+client = MultirotorClient(connet_ip)
+client.confirmConnection()
+# go up
 
-
-
-# client.reset()
+# a = input()
+#print("start")
+#moveAhead(15)
+#print("end")
