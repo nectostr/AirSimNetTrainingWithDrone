@@ -93,7 +93,11 @@ def resetImageConn():
     client.rotateToYaw(0)
     print("rotated")
 
+
+
 def processDataForSavingAndForNet():
+    difROWs = 2
+    difCOLs = 4
     pics = takePictures()
     # print(pics[0])
     #-------
@@ -119,7 +123,7 @@ def processDataForSavingAndForNet():
     outX_array = rgb2gray(outX_array)
     outX_array = outX_array / max(outX_array.flat)
     outX_array = np.expand_dims(np.expand_dims(np.expand_dims(outX_array, 0),0),-1)
-    depth_array = np.expand_dims(depth_array, 0)
+    depth_array = np.expand_dims(np.expand_dims(depth_array, 0), -1)
     return (outX_array, depth_array)
 
 

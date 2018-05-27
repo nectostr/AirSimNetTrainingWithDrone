@@ -34,28 +34,51 @@ print(shape_temp_x, shape_temp_y)
 
 model = Sequential()
 K.set_image_data_format("channels_last")
-
-model.add(ConvLSTM2D(16, (3, 3), activation='relu',
+v_max_norm = 2
+v_regularizer = 0.05
+model.add(ConvLSTM2D(80, (3, 3), padding='same', activation='relu',
                      batch_input_shape=(1, 1, ROWS, COLS, 1), return_sequences=True,
-                     stateful=True, kernel_regularizer=l2(0.01),
-                     kernel_constraint=max_norm(4)))
-model.add(Dropout(0.2))
+                     stateful=True, kernel_regularizer=l2(v_regularizer),
+                     kernel_constraint=max_norm(v_max_norm)))
+#model.add(ConvLSTM2D(8, (3, 3), activation='relu', return_sequences=True, stateful=True,
+#                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(ConvLSTM2D(80, (3, 3), padding='same', activation='relu', stateful=True,
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(MaxPooling2D(pool_size=(3, 3)))
 
-model.add(ConvLSTM2D(8, (3, 3), activation='relu', return_sequences=True, stateful=True,
-                     kernel_regularizer=l2(0.01), kernel_constraint=max_norm(4)))
-model.add(Dropout(0.2))
+model.add(Conv2D(72, (3, 3), activation='relu',padding='same',
+                     kernel_regularizer=l2(v_regularizer),
+                     kernel_constraint=max_norm(v_max_norm)))
+model.add(Conv2D(72, (3, 3), activation='relu',padding='same',
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Conv2D(72, (3, 3), activation='relu',padding='same',
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
 
-model.add(ConvLSTM2D(8, (3, 3), activation='relu', stateful=True,
-                     kernel_regularizer=l2(0.01), kernel_constraint=max_norm(4)))
-model.add(Dropout(0.2))
+model.add(Dense(2000, activation='sigmoid', kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Dense(1000, activation='sigmoid', kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Dense(2000, activation='sigmoid', kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
-model.add(AveragePooling2D(pool_size=(3, 3)))
-model.add(AveragePooling2D(pool_size=(3, 3)))
+model.add(UpSampling2D((2,2)))
+model.add(Conv2DTranspose(72, (3,3), activation='relu',padding='same',
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Conv2DTranspose(72, (3,3), activation='relu',padding='same',
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Conv2DTranspose(72, (3,3), activation='relu',padding='same',
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
 
-model.add(Flatten())
-model.add(Dense(ROWS * COLS, activation='sigmoid', kernel_regularizer=l2(0.005), kernel_constraint=max_norm(4)))
-model.add(Reshape((ROWS, COLS)))
+model.add(UpSampling2D((3,3)))
+model.add(ZeroPadding2D((0,1)))
+model.add(Conv2DTranspose(80, (3,3), activation='relu',padding='same',
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Conv2DTranspose(1, (3,3), activation='softmax',padding='same',
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+#model.add(Conv2DTranspose(8, (3,3)))
+
+#model.add(Flatten())
+#model.add(Dense(ROWS * COLS, activation='sigmoid', kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+#model.add(Reshape((ROWS, COLS)))
 
 opt = keras.optimizers.Adam(lr= 0.001)
 model.compile(loss='mean_squared_error',
@@ -139,7 +162,7 @@ while ep < 20:
     x_data, y_data = next(generator())
     res = model.predict(x_data)
     show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
-                 np.reshape(y_data, (ROWS, COLS)) -  np.reshape(res,(ROWS, COLS))], 1, ["from", "want", "predict", "diff"])
+                 ], 1, ["from", "want", "predict"])
     # airsimdata.resetImageConn()
   except airsimdata.ExeptInGenData as ex:
     model.reset_states()
