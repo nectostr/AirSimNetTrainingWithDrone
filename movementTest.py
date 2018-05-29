@@ -159,20 +159,22 @@ connet_ip = ""
 client = MultirotorClient(connet_ip)
 client.confirmConnection()
 
-movementConnection()
+#movementConnection()
 # for saving data
-moveRight(50)
-time.sleep(5)
-for i in range(10):
-    print("pic"+str(i))
-    arra = processDataForSavingAndForNet()
-    saveData(arra)
-    time.sleep(2)
+#moveRight(50)
+#time.sleep(5)
+#for i in range(30):
+#    print("pic"+str(i))
+#    arra = processDataForSavingAndForNet()
+#    saveData(arra)
+#    time.sleep(1)
 
 # reading data
-for i in range(0,10):
+for i in range(10,13):
     x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from"+str(i)+".txt")
+    y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to"+str(i)+".txt")
     plt.matshow(x)
+    plt.matshow(y)
 plt.show()
 
 
