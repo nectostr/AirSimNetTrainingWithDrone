@@ -47,18 +47,24 @@ v_max_norm = 2
 v_regularizer = 0.5
 model.add(Conv2D(32, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
                  kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2D(32, (2, 2), padding='same', activation='relu',
+model.add(Reshape((1, 64, 64, 32)))
+model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+
+model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-
-
-
 model.add(Reshape((1, 32, 32, 32)))
+model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+
 model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
 model.add(Flatten())
+model.add(Dense(ROWS * COLS, activation='sigmoid',
+                kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(Dense(ROWS * COLS, activation='sigmoid',
                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(Reshape((ROWS, COLS, 1)))
@@ -141,15 +147,15 @@ tensorboard_cb = keras.callbacks.TensorBoard(
     write_images=True
 )
 
-while ep < 5:
+while ep < 30:
 
     try:
         print(ep)
         model.fit_generator(generator(), epochs=epochs, steps_per_epoch=29, verbose=1, workers=1)
         x_data, y_data = next(generator())
         res = model.predict(x_data)
-        show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
-                    ], 1, ["from", "want", "predict"])
+        #show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
+        #            ], 1, ["from", "want", "predict"])
         #airsimdata.resetImageConn()
         model.reset_states()
         #model.save('model.h5')
