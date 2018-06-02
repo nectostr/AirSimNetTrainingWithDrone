@@ -32,7 +32,7 @@ def generator():
         y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to" + str(i) + ".txt")
         x = np.expand_dims(np.expand_dims(x, 0),-1)
         y = np.expand_dims(np.expand_dims(y, 0), -1)
-        if i == 204: i = -1
+        if i == 429: i = -1
         i += 1
         yield x,y
 batch_size = 1
@@ -47,7 +47,7 @@ v_max_norm = 2
 v_regularizer = 0.0001
 model.add(Conv2D(32, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
                  kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Reshape((1, 64, 64, 32)))
+model.add(Reshape((1, 128, 128, 32)))
 model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
@@ -55,7 +55,7 @@ model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=Tru
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.15))
-model.add(Reshape((1, 32, 32, 32)))
+model.add(Reshape((1, 64, 64, 32)))
 model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
@@ -152,7 +152,7 @@ while ep < 30:
 
     try:
         print(ep)
-        model.fit_generator(generator(), epochs=epochs, steps_per_epoch=204, verbose=1, workers=1)
+        model.fit_generator(generator(), epochs=epochs, steps_per_epoch=429, verbose=1, workers=1)
         x_data, y_data = next(generator())
         res = model.predict(x_data)
         show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
