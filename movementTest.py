@@ -96,6 +96,14 @@ def moveRight(duration):
     z = client.getPosition().z_val
     client.moveByVelocityZ(vx, vy, z, duration, DrivetrainType.ForwardOnly)
 
+def moveLeft(duration):
+    speed = 1
+    pitch, roll, yaw  = client.getPitchRollYaw()
+    vx = math.cos(yaw - 90) * speed
+    vy = math.sin(yaw - 90) * speed
+    z = client.getPosition().z_val
+    client.moveByVelocityZ(vx, vy, z, duration, DrivetrainType.ForwardOnly)
+
 def flyIteration(n):
     yaw = randint(-90,90)
     client.rotateToYaw(yaw)
@@ -159,16 +167,45 @@ connet_ip = ""
 client = MultirotorClient(connet_ip)
 client.confirmConnection()
 
-#movementConnection()
-# for saving data
-#moveRight(50)
-#time.sleep(5)
-#for i in range(30):
-#    print("pic"+str(i))
-#    arra = processDataForSavingAndForNet()
-#    saveData(arra)
-#    time.sleep(1)
+movementConnection()
 
+a = []
+
+moveToDir(0,0,-20)
+pics = processDataForSavingAndForNet()
+# plt.matshow(pics[0].reshape(64,64))
+plt.matshow(pics[1].reshape(64, 64))
+plt.show()
+
+c = input()
+while c != '`':
+
+    if (c == 'w'):
+        moveAhead(5)
+    elif (c == 'a'):
+        moveLeft(5)
+    elif c == 'd':
+        moveRight(5)
+    elif c == 'q':
+        pitch, roll, yaw = client.getPitchRollYaw()
+        print(yaw, yaw + 90 * math.pi / 180)
+        yawG = yaw * 180 / math.pi
+        client.rotateToYaw(yawG - 30)
+        print(yaw)
+    elif c == 'e':
+        pitch, roll, yaw = client.getPitchRollYaw()
+        print(yaw, yaw + 90 * math.pi / 180)
+        yawG = yaw * 180 / math.pi
+        client.rotateToYaw(yawG + 30)
+        print(yaw)
+    pics = processDataForSavingAndForNet()
+    #plt.matshow(pics[0].reshape(64,64))
+    plt.matshow(pics[1].reshape(64, 64))
+    plt.show()
+    c = input()
+    a.append(c)
+
+print(a)
 # reading data
 for i in range(10,13):
     x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from"+str(i)+".txt")
