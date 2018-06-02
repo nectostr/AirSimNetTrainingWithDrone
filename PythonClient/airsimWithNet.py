@@ -108,7 +108,7 @@ def processDataForSavingAndForNet():
         return x if x < 150 else 150
     dep_lim = np.vectorize(dep_lim)
     # Срезаем до 50м карту глубины
-    depth_array = dep_lim(depth_array)
+    # depth_array = dep_lim(depth_array)
     # нормализуем до 0-1
     depth_array = depth_array / max(depth_array.flat)
     # визуализация для себя

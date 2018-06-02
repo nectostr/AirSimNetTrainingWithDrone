@@ -17,8 +17,8 @@ config = tf.ConfigProto(
     )
 sess = tf.Session(config=config)
 K.set_session(sess)
-ROWS = 64
-COLS = 64
+ROWS = 128
+COLS = 128
 # generator -> (X_text, Y_test)
 
 # запилим модель с блекджеком и ...
@@ -32,7 +32,7 @@ def generator():
         y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to" + str(i) + ".txt")
         x = np.expand_dims(np.expand_dims(x, 0),-1)
         y = np.expand_dims(np.expand_dims(y, 0), -1)
-        if i == 29: i = -1
+        if i == 204: i = -1
         i += 1
         yield x,y
 batch_size = 1
@@ -44,7 +44,7 @@ batch_size = 1
 model = Sequential()
 K.set_image_data_format("channels_last")
 v_max_norm = 2
-v_regularizer = 0.5
+v_regularizer = 0.0001
 model.add(Conv2D(32, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
                  kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(Reshape((1, 64, 64, 32)))
@@ -54,6 +54,7 @@ model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=Tru
 model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.15))
 model.add(Reshape((1, 32, 32, 32)))
 model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
@@ -61,7 +62,7 @@ model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=Tru
 model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-
+model.add(Dropout(0.15))
 model.add(Flatten())
 model.add(Dense(ROWS * COLS, activation='sigmoid',
                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
@@ -151,14 +152,14 @@ while ep < 30:
 
     try:
         print(ep)
-        model.fit_generator(generator(), epochs=epochs, steps_per_epoch=29, verbose=1, workers=1)
+        model.fit_generator(generator(), epochs=epochs, steps_per_epoch=204, verbose=1, workers=1)
         x_data, y_data = next(generator())
         res = model.predict(x_data)
-        #show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
-        #            ], 1, ["from", "want", "predict"])
+        show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
+                    ], 1, ["from", "want", "predict"])
         #airsimdata.resetImageConn()
         model.reset_states()
-        #model.save('model.h5')
+        model.save('model2.h5')
     except airsimdata.ExeptInGenData as ex:
         model.reset_states()
     finally:

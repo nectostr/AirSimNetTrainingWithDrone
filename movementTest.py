@@ -8,6 +8,8 @@ from random import randint
 import time
 import numpy as np
 from matplotlib import pyplot as plt
+ROWS = 128
+COLS = 128
 
 def moveToDir(x_dir, y_dir, z_dir):
     pos = client.getPosition()
@@ -71,8 +73,8 @@ globalSaveInd = 0
 data_save_dir = "L:\\Documents\\PyCharmProjects\\HelloDrone\\data"
 def saveData(arrays):
     global globalSaveInd
-    outx = arrays[0].reshape((64,64))
-    outy = arrays[1].reshape((64,64))
+    outx = arrays[0].reshape((ROWS,COLS))
+    outy = arrays[1].reshape((ROWS,COLS))
     a = data_save_dir + "\\pic_from" + str(globalSaveInd) + ".txt"
     np.savetxt(a, outx)
     np.savetxt(data_save_dir + "\\pic_to" + str(globalSaveInd) + ".txt", outy)
@@ -89,8 +91,9 @@ def movementConnection():
 def moveRight(duration):
     speed = 1
     pitch, roll, yaw  = client.getPitchRollYaw()
-    vx = math.cos(yaw + 90) * speed
-    vy = math.sin(yaw + 90) * speed
+    angle = 90 * math.pi / 180
+    vx = math.cos(yaw + angle) * speed
+    vy = math.sin(yaw + angle) * speed
     z = client.getPosition().z_val
     client.moveByVelocityZ(vx, vy, z, duration, DrivetrainType.ForwardOnly)
     time.sleep(duration)
@@ -98,15 +101,18 @@ def moveRight(duration):
 def moveLeft(duration):
     speed = 1
     pitch, roll, yaw  = client.getPitchRollYaw()
-    vx = math.cos(yaw - 90) * speed
-    vy = math.sin(yaw - 90) * speed
+    angle = 90 * math.pi / 180
+    vx = math.cos(yaw - angle) * speed
+    vy = math.sin(yaw - angle) * speed
     z = client.getPosition().z_val
     client.moveByVelocityZ(vx, vy, z, duration, DrivetrainType.ForwardOnly)
     time.sleep(duration)
 
 def flyIteration(n):
-    yaw = randint(-90,90)
-    client.rotateToYaw(yaw)
+    pitch, roll, yaw = client.getPitchRollYaw()
+    Nyaw = randint(-90,90)
+    yaw = yaw * 180 / math.pi
+    client.rotateToYaw(yaw + Nyaw)
     moveAhead(n)
 
 def rgb2gray(rgb):
@@ -168,51 +174,54 @@ client = MultirotorClient(connet_ip)
 client.confirmConnection()
 
 movementConnection()
-
-a = []
-c = input()
-while c != '`':
-
-    if (c == 'w'):
-        moveAhead(5)
-    elif (c == 'a'):
-        moveLeft(5)
-    elif c == 'd':
-        moveRight(5)
-    elif c == 'q':
-        pitch, roll, yaw = client.getPitchRollYaw()
-        print(yaw, yaw + 90 * math.pi / 180)
-        yawG = yaw * 180 / math.pi
-        client.rotateToYaw(yawG - 30)
-        print(yaw)
-    elif c == 'e':
-        pitch, roll, yaw = client.getPitchRollYaw()
-        print(yaw, yaw + 90 * math.pi / 180)
-        yawG = yaw * 180 / math.pi
-        client.rotateToYaw(yawG + 30)
-        print(yaw)
-    pics = processDataForSavingAndForNet()
-    #plt.matshow(pics[0].reshape(64,64))
-    plt.matshow(pics[1].reshape(64, 64))
-    plt.show()
-    c = input()
-    a.append(c)
-print(a)
+client.moveToPosition(-11, 12, -1, 1)
+client.rotateToYaw(-0.6111164247 * 180 / math.pi)
+# a = []
+# c = input()
+# while c != '`':
+#     if (c == 'w'):
+#         moveAhead(5)
+#     elif (c == 'a'):
+#         moveLeft(5)
+#     elif c == 'd':
+#         moveRight(5)
+#     elif c == 'q':
+#         pitch, roll, yaw = client.getPitchRollYaw()
+#         print(yaw, yaw + 90 * math.pi / 180)
+#         yawG = yaw * 180 / math.pi
+#         client.rotateToYaw(yawG - 30)
+#         print(yaw)
+#     elif c == 'e':
+#         pitch, roll, yaw = client.getPitchRollYaw()
+#         print(yaw, yaw + 90 * math.pi / 180)
+#         yawG = yaw * 180 / math.pi
+#         client.rotateToYaw(yawG + 30)
+#         print(yaw)
+#     position = client.getPosition()
+#     print(position.x_val, position.y_val, position.z_val)
+#     pics = processDataForSavingAndForNet()
+#     #plt.matshow(pics[0].reshape(64,64))
+#     plt.matshow(pics[1].reshape(64, 64))
+#     plt.show()
+#     c = input()
+#     a.append(c)
+# print(a)
 # circle iteration
-angle_to_turn = 10
-for i in range(int(360 / angle_to_turn)):
+time.sleep(1)
+angle_to_turn = 17
+for i in range(int(360 / angle_to_turn) + 5):
     print(i)
-    moveRight(15)
+    moveRight(21)
     pitch, roll, yaw = client.getPitchRollYaw()
     yawG = yaw * 180 / math.pi
     client.rotateToYaw(yawG - angle_to_turn)
-    pics = processDataForSavingAndForNet()
+    #pics = processDataForSavingAndForNet()
     # plt.matshow(pics[0].reshape(64,64))
-    plt.matshow(pics[1].reshape(64, 64))
-    plt.show()
+    #plt.matshow(pics[1].reshape(64, 64))
+    #plt.show()
 
 # reading data
-# for i in range(10,13):
+# for i in range(0, 5, 1):
 #     x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from"+str(i)+".txt")
 #     y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to"+str(i)+".txt")
 #     plt.matshow(x)
@@ -221,3 +230,7 @@ for i in range(int(360 / angle_to_turn)):
 
 # заменить подъезл на мове то(хуз) и поворт автоматически. ЗАмерить сколько именно над линеей и детать наиней.
 #  Попробовать подсчитать как говорил рома
+# -10.407453536987305 11.082700729370117
+# -13.337678909301758 13.63478946685791
+# -6.424674231358698e-06
+# -0.7983215994267586
