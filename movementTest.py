@@ -85,8 +85,6 @@ def movementConnection():
     client.armDisarm(True)
     moveToDir(0, 0, -1)
     print("flied up")
-    client.rotateToYaw(0)
-    print("rotated")
 
 def moveRight(duration):
     speed = 1
@@ -95,6 +93,7 @@ def moveRight(duration):
     vy = math.sin(yaw + 90) * speed
     z = client.getPosition().z_val
     client.moveByVelocityZ(vx, vy, z, duration, DrivetrainType.ForwardOnly)
+    time.sleep(duration)
 
 def moveLeft(duration):
     speed = 1
@@ -103,6 +102,7 @@ def moveLeft(duration):
     vy = math.sin(yaw - 90) * speed
     z = client.getPosition().z_val
     client.moveByVelocityZ(vx, vy, z, duration, DrivetrainType.ForwardOnly)
+    time.sleep(duration)
 
 def flyIteration(n):
     yaw = randint(-90,90)
@@ -170,13 +170,6 @@ client.confirmConnection()
 movementConnection()
 
 a = []
-
-moveToDir(0,0,-20)
-pics = processDataForSavingAndForNet()
-# plt.matshow(pics[0].reshape(64,64))
-plt.matshow(pics[1].reshape(64, 64))
-plt.show()
-
 c = input()
 while c != '`':
 
@@ -204,14 +197,27 @@ while c != '`':
     plt.show()
     c = input()
     a.append(c)
-
 print(a)
+# circle iteration
+angle_to_turn = 10
+for i in range(int(360 / angle_to_turn)):
+    print(i)
+    moveRight(15)
+    pitch, roll, yaw = client.getPitchRollYaw()
+    yawG = yaw * 180 / math.pi
+    client.rotateToYaw(yawG - angle_to_turn)
+    pics = processDataForSavingAndForNet()
+    # plt.matshow(pics[0].reshape(64,64))
+    plt.matshow(pics[1].reshape(64, 64))
+    plt.show()
+
 # reading data
-for i in range(10,13):
-    x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from"+str(i)+".txt")
-    y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to"+str(i)+".txt")
-    plt.matshow(x)
-    plt.matshow(y)
-plt.show()
+# for i in range(10,13):
+#     x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from"+str(i)+".txt")
+#     y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to"+str(i)+".txt")
+#     plt.matshow(x)
+#     plt.matshow(y)
+# plt.show()
 
-
+# заменить подъезл на мове то(хуз) и поворт автоматически. ЗАмерить сколько именно над линеей и детать наиней.
+#  Попробовать подсчитать как говорил рома
