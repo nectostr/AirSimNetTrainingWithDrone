@@ -53,17 +53,39 @@ def generator():
         y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to" + str(i) + ".txt")
         x = np.expand_dims(np.expand_dims(x, 0),-1)
         y = np.expand_dims(np.expand_dims(y, 0), -1)
-        if i == 204: i = -1
+        if i == 2005: i = -1
         i += 1
         yield x,y
 
 
 model = keras.models.load_model('model2.h5')
-for i in range(0, 150):
-    x_data, y_data = next(generator())
-    res = model.predict(x_data)
-for i in range(0, 5):
-    x_data, y_data = next(generator())
-    res = model.predict(x_data)
+
+epochs = 1
+ep = 0
+a = generator()
+while ep < 3:
+
+    try:
+        print(ep)
+        history = model.fit_generator(a, epochs=epochs, steps_per_epoch=300, verbose=1, workers=1)
+        x_data, y_data = next(a)
+        res = model.predict(x_data)
+        show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
+                    ], 1, ["from", "want", "predict"])
+        #airsimdata.resetImageConn()
+        model.reset_states()
+        model.save('model2' + ep +'.h5')
+    except airsimdata.ExeptInGenData as ex:
+        model.reset_states()
+    finally:
+        ep += 1
+print(history.history['loss'])
+for i in range(10):
+    for j in range(10):
+        x_data, y_data = next(generator())
+        res = model.predict(x_data)
     show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
                 ], 1, ["from", "want", "predict"])
+model.save('model.h5')
+
+print("<3")

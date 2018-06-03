@@ -105,12 +105,13 @@ def processDataForSavingAndForNet():
     depth_array = np.reshape(np.asarray(pics[0].image_data_float, dtype=np.float32), (pics[0].height, pics[0].width))
     # ограничим дальность карты глубины до x
     def dep_lim(x):
-        return x if x < 150 else 150
+        return x if x < 200 else 200
     dep_lim = np.vectorize(dep_lim)
     # Срезаем до 50м карту глубины
-    # depth_array = dep_lim(depth_array)
+    depth_array = dep_lim(depth_array)
     # нормализуем до 0-1
     depth_array = depth_array / max(depth_array.flat)
+    depth_array = 1 - depth_array
     # визуализация для себя
     # plt.matshow(depth_array)
     # plt.show()

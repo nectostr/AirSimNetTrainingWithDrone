@@ -34,49 +34,35 @@ print(shape_temp_x, shape_temp_y)
 
 model = Sequential()
 K.set_image_data_format("channels_last")
-v_max_norm = 4
-v_regularizer = 0.1
-model.add(Conv2D(32, (3, 3), padding='same', activation='relu',
-                     batch_input_shape=(1, ROWS, COLS, 1),  kernel_regularizer=l2(v_regularizer),
-                     kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2D(32, (3, 3), padding='same', activation='relu',
+v_max_norm = 2
+v_regularizer = 0.0001
+model.add(Conv2D(32, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
+                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Reshape((1, 64, 64, 32)))
+model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
+                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+
+model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-
-
-
+model.add(Dropout(0.15))
 model.add(Reshape((1, 32, 32, 32)))
-model.add(ConvLSTM2D(256, (3, 3), activation='relu',padding='same',stateful= True,  return_sequences=True,
-                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(ConvLSTM2D(256, (3, 3), activation='relu',padding='same',stateful= True,
+model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
-
-# model.add(ConvLSTM2D(32, (3, 3), activation='relu',padding='same', stateful= True, return_sequences=True,
-#                      kernel_regularizer=l2(v_regularizer),
-#                      kernel_constraint=max_norm(v_max_norm)))
-# model.add(ConvLSTM2D(16, (3, 3), activation='relu',padding='same',stateful= True, return_sequences=True,
-#                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-# model.add(ConvLSTM2D(8, (3, 3), activation='relu',padding='same',stateful= True,
-#                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-# model.add(MaxPooling2D(pool_size=(2, 2)))
-
-
-
-model.add(UpSampling2D((2,2)))
-model.add(Conv2DTranspose(32, (3,3), activation='relu',padding='same',
+model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2DTranspose(32, (3,3), activation='relu',padding='same',
-                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.15))
+model.add(Flatten())
+model.add(Dense(ROWS * COLS, activation='sigmoid',
+                kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Dense(ROWS * COLS, activation='sigmoid',
+                kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Reshape((ROWS, COLS, 1)))
 
-model.add(Conv2DTranspose(1, (1,1), activation='relu',padding='same',
-                     kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-
-#model.add(Conv2DTranspose(8, (3,3)))
-
-
-opt = keras.optimizers.Adam(lr= 0.001)
-model.compile(loss='mean_squared_error',
+opt = keras.optimizers.Nadam(lr= 0.001)
+model.compile(loss='mean_absolute_error',
               optimizer=opt,
               metrics=['accuracy'])
 print(model.summary())
@@ -120,7 +106,7 @@ def generator():
 # ((X_train, Y_train), reset) = airsimdata.getData()
 # немного о данных
 # Shape of x:  (480, 640, 4) , shape of Y  (480, 640)
-epochs = 1
+epochs = 2
 ep = 0
 
 
@@ -151,13 +137,13 @@ tensorboard_cb = keras.callbacks.TensorBoard(
     write_images=True
 )
 
-while ep < 20:
+while ep < 2:
   try:
-    model.fit_generator(generator(), epochs=epochs, steps_per_epoch=100, verbose=1, workers=1, initial_epoch=ep)
-    #x_data, y_data = next(generator())
-    #res = model.predict(x_data)
-    #show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
-    #             ], 1, ["from", "want", "predict"])
+    model.fit_generator(generator(), epochs=epochs, steps_per_epo   ch=50, verbose=1, workers=1, initial_epoch=ep)
+    x_data, y_data = next(generator())
+    res = model.predict(x_data)
+    show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
+                 ], 1, ["from", "want", "predict"])
     # airsimdata.resetImageConn()
     model.save('model.h5')
   except airsimdata.ExeptInGenData as ex:

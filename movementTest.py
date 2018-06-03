@@ -8,8 +8,8 @@ from random import randint
 import time
 import numpy as np
 from matplotlib import pyplot as plt
-ROWS = 128
-COLS = 128
+ROWS = 64
+COLS = 64
 
 def moveToDir(x_dir, y_dir, z_dir):
     pos = client.getPosition()
@@ -209,19 +209,25 @@ client.rotateToYaw(-0.6111164247 * 180 / math.pi)
 # circle iteration
 time.sleep(1)
 angle_to_turn = 17
-for i in range(int(360 / angle_to_turn) + 5):
-    print(i)
-    moveRight(21)
-    pitch, roll, yaw = client.getPitchRollYaw()
-    yawG = yaw * 180 / math.pi
-    client.rotateToYaw(yawG - angle_to_turn)
-    #pics = processDataForSavingAndForNet()
-    # plt.matshow(pics[0].reshape(64,64))
-    #plt.matshow(pics[1].reshape(64, 64))
-    #plt.show()
+while (True):
+    for i in range(int(360 / angle_to_turn) * 100):
+        print(i)
+        moveRight(21)
+        pitch, roll, yaw = client.getPitchRollYaw()
+        yawG = yaw * 180 / math.pi
+        angle_del = (yawG - angle_to_turn)
+        if angle_del < -180:
+            angle_del = 360 + angle_del
+        elif angle_del > 180:
+            angle_del = angle_del - 360
+        client.rotateToYaw(angle_del)
+        #pics = processDataForSavingAndForNet()
+        # plt.matshow(pics[0].reshape(64,64))
+        #plt.matshow(pics[1].reshape(64, 64))
+        #plt.show()
 
 # reading data
-# for i in range(0, 5, 1):
+# for i in range(0, 560, 30):
 #     x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from"+str(i)+".txt")
 #     y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to"+str(i)+".txt")
 #     plt.matshow(x)
@@ -234,3 +240,5 @@ for i in range(int(360 / angle_to_turn) + 5):
 # -13.337678909301758 13.63478946685791
 # -6.424674231358698e-06
 # -0.7983215994267586
+
+

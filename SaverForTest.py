@@ -1,8 +1,8 @@
 import numpy as np
 import time
 import PythonClient.airsimWithNet as airsimdata
-ROWS = 128
-COLS = 128
+ROWS = 64
+COLS = 64
 
 globalSaveInd = 0
 data_save_dir = "L:\\Documents\\PyCharmProjects\\HelloDrone\\data"
