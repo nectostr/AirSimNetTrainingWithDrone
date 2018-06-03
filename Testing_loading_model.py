@@ -58,23 +58,23 @@ def generator():
         yield x,y
 
 
-model = keras.models.load_model('model2.h5')
+model = keras.models.load_model('model20.h5')
 
 epochs = 1
 ep = 0
 a = generator()
-while ep < 3:
+while ep < 40:
 
     try:
         print(ep)
-        history = model.fit_generator(a, epochs=epochs, steps_per_epoch=300, verbose=1, workers=1)
+        history = model.fit_generator(a, epochs=epochs, steps_per_epoch=30, verbose=1, workers=1)
         x_data, y_data = next(a)
         res = model.predict(x_data)
         show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
                     ], 1, ["from", "want", "predict"])
         #airsimdata.resetImageConn()
         model.reset_states()
-        model.save('model2' + ep +'.h5')
+        model.save('model2' + str(ep) +'.h5')
     except airsimdata.ExeptInGenData as ex:
         model.reset_states()
     finally:
