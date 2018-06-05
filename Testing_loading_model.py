@@ -46,35 +46,39 @@ def show_images(images, cols=1, titles=None):
         a.set_title(title)
     fig.set_size_inches(np.array(fig.get_size_inches()) * n_images)
     plt.show()
+
+path = 'C:\\Users\\Liubuska\\PycharmProjects\\AirSimNetTrainingWithDrone\\data'
 def generator():
     i = 0
     while True:
-        x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from" + str(i) + ".txt")
-        y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to" + str(i) + ".txt")
+        x = np.loadtxt(path + "\\pic_from" + str(i) + ".txt")
+        y = np.loadtxt(path + "\\pic_to" + str(i) + ".txt")
         x = np.expand_dims(np.expand_dims(x, 0),-1)
         y = np.expand_dims(np.expand_dims(y, 0), -1)
         if i == 2005: i = -1
         i += 1
         yield x,y
 
-
-model = keras.models.load_model('model20.h5')
-
+model = keras.models.load_model('model3.h5')
+print(model.summary())
 epochs = 1
 ep = 0
 a = generator()
-while ep < 40:
+while ep < 400:
 
     try:
         print(ep)
-        history = model.fit_generator(a, epochs=epochs, steps_per_epoch=30, verbose=1, workers=1)
+        history = model.fit_generator(a, epochs=epochs, steps_per_epoch=10, verbose=1, workers=1)
         x_data, y_data = next(a)
         res = model.predict(x_data)
-        show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
-                    ], 1, ["from", "want", "predict"])
+        # show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
+        #            ], 1, ["from", "want", "predict"])
         #airsimdata.resetImageConn()
+        if history.history['loss'] == np.nan:
+            break
         model.reset_states()
-        model.save('model2' + str(ep) +'.h5')
+        if ep % 2 == 0:
+            model.save('model2' + str(ep % 5) +'.h5')
     except airsimdata.ExeptInGenData as ex:
         model.reset_states()
     finally:

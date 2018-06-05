@@ -17,22 +17,22 @@ config = tf.ConfigProto(
     )
 sess = tf.Session(config=config)
 K.set_session(sess)
-ROWS = 64
-COLS = 64
+ROWS = 256
+COLS = 256
 # generator -> (X_text, Y_test)
 
 # запилим модель с блекджеком и ...
 # когда буду накидывать рекурентные последовательности должны быть stateful
 # reset recurrent будет звучать как-то как model.reset_states
-
+path = 'C:\\Users\\Liubuska\\PycharmProjects\\AirSimNetTrainingWithDrone\\data2'
 def generator():
     i = 0
     while True:
-        x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from" + str(i) + ".txt")
-        y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to" + str(i) + ".txt")
+        x = np.loadtxt(path + "\\pic_from" + str(i) + ".txt")
+        y = np.loadtxt(path + "\\pic_to" + str(i) + ".txt")
         x = np.expand_dims(np.expand_dims(x, 0),-1)
         y = np.expand_dims(np.expand_dims(y, 0), -1)
-        if i == 2005: i = -1
+        if i == 502: i = -1
         i += 1
         yield x,y
 batch_size = 1
@@ -45,17 +45,26 @@ model = Sequential()
 K.set_image_data_format("channels_last")
 v_max_norm = 2
 v_regularizer = 0.0001
-model.add(Conv2D(32, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
+model.add(Conv2D(16, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
                  kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Reshape((1, 64, 64, 32)))
-model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
+model.add(Conv2D(16, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
+                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(16, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
+                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Conv2D(16, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
+                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Reshape((1, 64, 64, 16)))
+model.add(ConvLSTM2D(16, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
-model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=True,
+model.add(ConvLSTM2D(16, (3, 3), padding='same', activation='relu', stateful=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
+
 model.add(Dropout(0.15))
-model.add(Reshape((1, 32, 32, 32)))
+model.add(Reshape((1, 32, 32, 16)))
 model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
@@ -64,13 +73,19 @@ model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=Tru
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.15))
 model.add(Flatten())
-model.add(Dense(ROWS * COLS, activation='sigmoid',
+den_row = int(ROWS / 4)
+den_col = int(COLS / 4)
+model.add(Dense(den_row * den_col, activation='sigmoid',
                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Dense(ROWS * COLS, activation='sigmoid',
+#model.add(Dense(den_row * den_col * 2, activation='sigmoid',
+#                kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+#model.add(Dense(den_row * den_col * 2, activation='sigmoid',
+#                kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Dense(den_row * den_col * 16, activation='sigmoid',
                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Reshape((ROWS, COLS, 1)))
+model.add(Reshape((ROWS, COLS , 1)))
 
-opt = keras.optimizers.Nadam(lr= 0.001)
+opt = keras.optimizers.Adam(lr= 0.001)
 model.compile(loss='mean_absolute_error',
               optimizer=opt,
               metrics=['accuracy'])
@@ -147,19 +162,21 @@ tensorboard_cb = keras.callbacks.TensorBoard(
     write_graph=True,
     write_images=True
 )
-
-while ep < 3:
+a = generator()
+while ep < 400:
 
     try:
         print(ep)
-        history = model.fit_generator(generator(), epochs=epochs, steps_per_epoch=100, verbose=1, workers=1)
-        x_data, y_data = next(generator())
-        res = model.predict(x_data)
-        show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
-                    ], 1, ["from", "want", "predict"])
+        history = model.fit_generator(a, epochs=epochs, steps_per_epoch=10, verbose=1, workers=1)
+        if ep % 10 == 0:
+            x_data, y_data = next(a)
+            res = model.predict(x_data)
+            show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
+                        ], 1, ["from", "want", "predict"])
         #airsimdata.resetImageConn()
         model.reset_states()
-        model.save('model2.h5')
+        if ep % 5 ==0:
+            model.save('model5.h5')
     except airsimdata.ExeptInGenData as ex:
         model.reset_states()
     finally:
