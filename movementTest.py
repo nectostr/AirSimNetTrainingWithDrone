@@ -8,8 +8,8 @@ from random import randint
 import time
 import numpy as np
 from matplotlib import pyplot as plt
-ROWS = 64
-COLS = 64
+ROWS = 256
+COLS = 256
 
 def moveToDir(x_dir, y_dir, z_dir):
     pos = client.getPosition()
@@ -70,7 +70,7 @@ def takePictures():
     return responses
 
 globalSaveInd = 0
-data_save_dir = "L:\\Documents\\PyCharmProjects\\HelloDrone\\data"
+data_save_dir = "L:\\Documents\\PyCharmProjects\\HelloDrone\\data6"
 def saveData(arrays):
     global globalSaveInd
     outx = arrays[0].reshape((ROWS,COLS))

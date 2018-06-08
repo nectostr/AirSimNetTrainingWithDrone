@@ -79,6 +79,7 @@ def movementConnection():
 
 def flyIteration(n):
     yaw = randint(-90,90)
+    # ....
     client.rotateToYaw(yaw)
     moveRight(n)
 
@@ -105,7 +106,7 @@ def processDataForSavingAndForNet():
     depth_array = np.reshape(np.asarray(pics[0].image_data_float, dtype=np.float32), (pics[0].height, pics[0].width))
     # ограничим дальность карты глубины до x
     def dep_lim(x):
-        return x if x < 200 else 200
+        return x if x < 50 else 50
     dep_lim = np.vectorize(dep_lim)
     # Срезаем до 50м карту глубины
     depth_array = dep_lim(depth_array)

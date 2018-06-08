@@ -139,7 +139,7 @@ tensorboard_cb = keras.callbacks.TensorBoard(
 
 while ep < 2:
   try:
-    model.fit_generator(generator(), epochs=epochs, steps_per_epo   ch=50, verbose=1, workers=1, initial_epoch=ep)
+    model.fit_generator(generator(), epochs=epochs, steps_per_epoch=50, verbose=1, workers=1, initial_epoch=ep)
     x_data, y_data = next(generator())
     res = model.predict(x_data)
     show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
