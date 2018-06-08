@@ -7,6 +7,8 @@ from keras.regularizers import *
 from keras.constraints import *
 from keras.models import Sequential
 from keras.layers import *
+from keras.utils import np_utils
+from keras.datasets import mnist
 from matplotlib import pyplot as plt
 np.random.seed(123)
 
@@ -15,22 +17,22 @@ config = tf.ConfigProto(
     )
 sess = tf.Session(config=config)
 K.set_session(sess)
-ROWS = 256
-COLS = 256
+ROWS = 128
+COLS = 128
 # generator -> (X_text, Y_test)
 
 # запилим модель с блекджеком и ...
 # когда буду накидывать рекурентные последовательности должны быть stateful
 # reset recurrent будет звучать как-то как model.reset_states
-path = 'C:\\Users\\Liubuska\\PycharmProjects\\AirSimNetTrainingWithDrone\\data5'
+path = 'C:\\Users\\Liubuska\\PycharmProjects\\AirSimNetTrainingWithDrone\\data3'
 def generator():
-    i = np.random.randint(1,200)
+    i = 1
     while True:
         x = np.loadtxt(path + "\\pic_from" + str(i) + ".txt")
         y = np.loadtxt(path + "\\pic_to" + str(i) + ".txt")
         x = np.expand_dims(np.expand_dims(x, 0),-1)
         y = np.expand_dims(np.expand_dims(y, 0), -1)
-        if i == 200: i = 0
+        if i == 502: i = 0
         i += 1
         yield x,y
 batch_size = 1
@@ -45,17 +47,11 @@ v_max_norm = 2
 v_regularizer = 0.0001
 model.add(Conv2D(32, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
                  kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2D(32, (2, 2), padding='same', activation='relu',
+model.add(Conv2D(32, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
                  kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Reshape((1, 128, 128, 32)))
-model.add(ConvLSTM2D(16, (2, 2), padding='same', activation='relu', return_sequences=True,
-                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(ConvLSTM2D(16, (2, 2), padding='same', activation='relu',
-                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.15))
-model.add(Reshape((1, 64, 64, 16)))
+
+model.add(Reshape((1, 64, 64, 32)))
 model.add(ConvLSTM2D(16, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
@@ -79,8 +75,8 @@ model.add(Dense(den_row * den_col, activation='sigmoid',
                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 #model.add(Dense(den_row * den_col * 2, activation='sigmoid',
 #                kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-#model.add(Dense(den_row * den_col * 2, activation='sigmoid',
-#                kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
+model.add(Dense(den_row * den_col * 2, activation='sigmoid',
+                kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(Dense(den_row * den_col * 16, activation='sigmoid',
                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(Reshape((ROWS, COLS , 1)))
