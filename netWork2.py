@@ -22,7 +22,7 @@ COLS = 256
 # запилим модель с блекджеком и ...
 # когда буду накидывать рекурентные последовательности должны быть stateful
 # reset recurrent будет звучать как-то как model.reset_states
-
+path = "L:\\Documents\\PyCharmProjects\\HelloDrone\\data5"
 def generator():
     i = np.random.randint(1,200)
     while True:

@@ -17,22 +17,22 @@ config = tf.ConfigProto(
     )
 sess = tf.Session(config=config)
 K.set_session(sess)
-ROWS = 128
-COLS = 128
+ROWS = 64
+COLS = 64
 # generator -> (X_text, Y_test)
 
 # запилим модель с блекджеком и ...
 # когда буду накидывать рекурентные последовательности должны быть stateful
 # reset recurrent будет звучать как-то как model.reset_states
-path = 'C:\\Users\\Liubuska\\PycharmProjects\\AirSimNetTrainingWithDrone\\data3'
+path = 'L:\\Documents\\PyCharmProjects\\HelloDrone\\data10'
 def generator():
-    i = 1
+    i = np.random.randint(1,560)
     while True:
         x = np.loadtxt(path + "\\pic_from" + str(i) + ".txt")
         y = np.loadtxt(path + "\\pic_to" + str(i) + ".txt")
-        x = np.expand_dims(np.expand_dims(x, 0),-1)
+        x = np.expand_dims(np.expand_dims(np.expand_dims(x, 0),-1),0)
         y = np.expand_dims(np.expand_dims(y, 0), -1)
-        if i == 502: i = 0
+        if i == 560: i = 0
         i += 1
         yield x,y
 batch_size = 1
@@ -45,22 +45,15 @@ model = Sequential()
 K.set_image_data_format("channels_last")
 v_max_norm = 2
 v_regularizer = 0.0001
-model.add(Conv2D(32, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
-                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(Conv2D(32, (2, 2), padding='same', activation='relu', batch_input_shape=(1, ROWS, COLS, 1),
-                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-model.add(MaxPooling2D(pool_size=(2, 2)))
 
-model.add(Reshape((1, 64, 64, 32)))
-model.add(ConvLSTM2D(16, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
+model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True, batch_input_shape=(1,1,ROWS,COLS,1),
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
-model.add(ConvLSTM2D(16, (3, 3), padding='same', activation='relu', stateful=True,
+model.add(ConvLSTM2D(32, (3, 3), padding='same', activation='relu', stateful=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-
 model.add(Dropout(0.15))
-model.add(Reshape((1, 32, 32, 16)))
+model.add(Reshape((1, 64, 64, 32)))
 model.add(ConvLSTM2D(32, (2, 2), padding='same', activation='relu', stateful=True, return_sequences=True,
                      kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 
@@ -73,8 +66,6 @@ den_row = int(ROWS / 4)
 den_col = int(COLS / 4)
 model.add(Dense(den_row * den_col, activation='sigmoid',
                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
-#model.add(Dense(den_row * den_col * 2, activation='sigmoid',
-#                kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(Dense(den_row * den_col * 2, activation='sigmoid',
                 kernel_regularizer=l2(v_regularizer), kernel_constraint=max_norm(v_max_norm)))
 model.add(Dense(den_row * den_col * 16, activation='sigmoid',
@@ -82,25 +73,15 @@ model.add(Dense(den_row * den_col * 16, activation='sigmoid',
 model.add(Reshape((ROWS, COLS , 1)))
 
 opt = keras.optimizers.Adam(lr= 0.001)
-model.compile(loss='mean_absolute_error',
+
+model.compile(loss='mean_squared_error',
               optimizer=opt,
               metrics=['accuracy'])
-print(model.summary())
+
+
 # data import
-
+print(model.summary())
 def show_images(images, cols=1, titles=None):
-    """Display a list of images in a single figure with matplotlib.
-
-    Parameters
-    —-------
-    images: List of np.arrays compatible with plt.imshow.
-
-    cols (Default = 1): Number of columns in figure (number of rows is
-                        set to np.ceil(n_images/float(cols))).
-
-    titles: List of titles corresponding to each image. Must have
-            the same length as titles.
-    """
     assert ((titles is None) or (len(images) == len(titles)))
     n_images = len(images)
     if titles is None: titles = ['Image (%d)' % i for i in range(1, n_images + 1)]
@@ -159,20 +140,20 @@ tensorboard_cb = keras.callbacks.TensorBoard(
     write_images=True
 )
 a = generator()
-while ep < 400:
+while ep < 4000:
 
     try:
         print(ep)
         history = model.fit_generator(a, epochs=epochs, steps_per_epoch=10, verbose=1, workers=1)
-        if ep % 10 == 0:
+        if ep % 50 == 0:
             x_data, y_data = next(a)
             res = model.predict(x_data)
             show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
                         ], 1, ["from", "want", "predict"])
         #airsimdata.resetImageConn()
         model.reset_states()
-        if ep % 5 ==0:
-            model.save('model5.h5')
+        if ep % 50 ==0:
+            model.save('MMmodel123.h5')
     except airsimdata.ExeptInGenData as ex:
         model.reset_states()
     finally:

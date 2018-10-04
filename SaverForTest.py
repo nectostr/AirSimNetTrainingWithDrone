@@ -1,11 +1,12 @@
 import numpy as np
 import time
 import PythonClient.airsimWithNet as airsimdata
-ROWS = 128
-COLS = 128
+ROWS = 256
+COLS = 256
 
 globalSaveInd = 0
-data_save_dir = "L:\\Documents\\PyCharmProjects\\HelloDrone\\data6"
+data_save_dir = "C:\\data11"
+
 def saveData(arrays):
     global globalSaveInd
     outx = arrays[0].reshape((ROWS,COLS))
@@ -18,4 +19,4 @@ def saveData(arrays):
 while(True):
     arra = airsimdata.processDataForSavingAndForNet()
     saveData(arra)
-    time.sleep(0.2)
+    time.sleep(0.05)

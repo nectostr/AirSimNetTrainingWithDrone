@@ -58,12 +58,11 @@ def savePictures(responses):
             img_rgba = img1d.reshape(response.height, response.width, 4)  # reshape array to 4 channel image array H X W X 4
             img_rgba = np.flipud(img_rgba)  # original image is fliped vertically
             AirSimClientBase.write_png(os.path.normpath(filename + '.png'), img_rgba)  # write to png
-
-
+camera_type = 0 # 0 for front, 4 for back
 def takePictures():
     responses = client.simGetImages([
-        ImageRequest(0, AirSimImageType.DepthPerspective, True, False),  # depth visualiztion image
-        ImageRequest(0, AirSimImageType.Scene, False, False)   # scene vision image in png format
+        ImageRequest(camera_type, AirSimImageType.DepthPerspective, True, False),  # depth visualiztion image
+        ImageRequest(camera_type, AirSimImageType.Scene, False, False)   # scene vision image in png format
     ])
     return responses
 
@@ -106,7 +105,7 @@ def processDataForSavingAndForNet():
     depth_array = np.reshape(np.asarray(pics[0].image_data_float, dtype=np.float32), (pics[0].height, pics[0].width))
     # ограничим дальность карты глубины до x
     def dep_lim(x):
-        return x if x < 50 else 50
+        return x if x < 300 else 300
     dep_lim = np.vectorize(dep_lim)
     # Срезаем до 50м карту глубины
     depth_array = dep_lim(depth_array)

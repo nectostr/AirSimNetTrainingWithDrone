@@ -17,8 +17,8 @@ config = tf.ConfigProto(
     )
 sess = tf.Session(config=config)
 K.set_session(sess)
-ROWS = 256
-COLS = 256
+ROWS = 64
+COLS = 64
 
 
 def show_images(images, cols=1, titles=None):
@@ -47,29 +47,36 @@ def show_images(images, cols=1, titles=None):
     fig.set_size_inches(np.array(fig.get_size_inches()) * n_images)
     plt.show()
 
-path = 'C:\\Users\\Liubuska\\PycharmProjects\\AirSimNetTrainingWithDrone\\data5'
-size = 200
+path = 'L:\\Documents\\PyCharmProjects\\HelloDrone\\data10'
+size = 560
 def generator():
     i = np.random.randint(1, size)
     while True:
         x = np.loadtxt(path + "\\pic_from" + str(i) + ".txt")
         y = np.loadtxt(path + "\\pic_to" + str(i) + ".txt")
-        x = np.expand_dims(np.expand_dims(x, 0),-1)
+        x = np.expand_dims(np.expand_dims(np.expand_dims(x, 0),-1),0)
         y = np.expand_dims(np.expand_dims(y, 0), -1)
-        if i == size: i = 0
+        if i == size: i = 1
         i += 1
         yield x,y
 
-model = keras.models.load_model('model50.h5')
+model = keras.models.load_model('model5.h5')
+#a = generator()
+#for i in range(5):
+#    x_data, y_data = next(a)
+#    res = model.predict(x_data)
+#    np.savetxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\to_check_data\\pic" + str(i) + ".txt", res)
+
+
 print(model.summary())
 epochs = 1
 ep = 0
 a = generator()
-while ep < 400:
+while ep < 10000:
 
     try:
         print(ep)
-        history = model.fit_generator(a, epochs=epochs, steps_per_epoch=10, verbose=1, workers=1)
+        history = model.fit_generator(a, epochs=epochs, steps_per_epoch=5, verbose=1, workers=1)
         x_data, y_data = next(a)
         res = model.predict(x_data)
         # show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
@@ -82,7 +89,8 @@ while ep < 400:
             #show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res, (ROWS, COLS)),
             #            ], 1, ["from", "want", "predict"])
             #model.save('model5' + str(ep % 5) +'.h5')
-
+        if ep % 2000 == 0:
+            model.save('model5'+str(ep)+'.h5')
     except airsimdata.ExeptInGenData as ex:
         model.reset_states()
     finally:
@@ -94,6 +102,6 @@ for i in range(10):
         res = model.predict(x_data)
     # show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS)), np.reshape(res,(ROWS, COLS)),
     #             ], 1, ["from", "want", "predict"])
-model.save('model.h5')
+
 
 print("<3")

@@ -1,14 +1,7 @@
 # net import
 import numpy as np
-import keras.backend as K
 import tensorflow as tf
-import keras
-from keras.regularizers import *
-from keras.constraints import *
-from keras.models import Sequential
 from keras.layers import *
-from keras.utils import np_utils
-from keras.datasets import mnist
 from matplotlib import pyplot as plt
 np.random.seed(123)
 
@@ -17,8 +10,8 @@ config = tf.ConfigProto(
     )
 sess = tf.Session(config=config)
 K.set_session(sess)
-ROWS = 64
-COLS = 64
+ROWS = 256
+COLS = 256
 
 
 def show_images(images, cols=1, titles=None):
@@ -50,17 +43,20 @@ def show_images(images, cols=1, titles=None):
 def generator():
     i = 0
     while True:
-        x = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_from" + str(i) + ".txt")
-        y = np.loadtxt("L:\\Documents\\PyCharmProjects\\HelloDrone\\data\\pic_to" + str(i) + ".txt")
+        x = np.load("C:\\data12\\pic_from" + str(i) + ".txt.npy")
+        y = np.load("C:\\data12\\pic_to" + str(i) + ".txt.npy")
         x = np.expand_dims(np.expand_dims(x, 0),-1)
         y = np.expand_dims(np.expand_dims(y, 0), -1)
-        if i == 2005: i = -1
+        if i == 1999: i = -1
         i += 1
         print(i)
         yield x,y
 
 a = generator()
-for i in range(2005):
-     for j in range(20):
-          x_data, y_data = next(a)
-     show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(y_data, (ROWS, COLS))], 1, ["from", "want"])
+for i in range(1999):
+    #for j in range(20):
+    x_data, y_data = next(a)
+    n_x_data, n_y_data = next(a)
+    show_images([np.reshape(x_data, (ROWS, COLS)), np.reshape(n_x_data, (ROWS, COLS)),
+                 np.reshape(x_data, (ROWS, COLS)) - np.reshape(n_x_data, (ROWS, COLS))
+                 ], 1, ["1", "2", 'minus'])
